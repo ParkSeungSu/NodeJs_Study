@@ -2,8 +2,9 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
-
+var path = require('path');
 var template = require('./template');
+var sanitizeHtml = require('sanitize-html');
 
 var app = http.createServer(function(request,response){
 
@@ -15,27 +16,39 @@ var app = http.createServer(function(request,response){
     console.log(pathname);
     
     if(pathname==='/'){
-      var title=queryData.id;
-      contorl=`<a href="/create">CREATE</a>
-      <a href="/update?id=${title}">UPDATE</a>
-      <form action='/delete_process' method="post">
-        <input type="hidden" name="id" value="${title}">
-        <input type="submit" value="delete">
-      </form>`;
       
-      fs.readFile(`./data/${title}`,'utf-8',function(err,description){
-        if(title === undefined){
-          title="Welcome";
-          description="Hello Node.js";
-          contorl=`<a href="/create">CREATE</a>`
+      fs.readdir('./data',function(error,fileList){
+        if(queryData.id === undefined){
+          var filteredId = '';
+        }else{
+          var filteredId = path.parse(queryData.id).base;
         }
-
-        fs.readdir('./data',function(error,fileList){
-          console.log(fileList);
-          var list = template.list(fileList);
-          var html = template.html(title,list,`<h2>${title}</h2>${description}`,contorl);
-          response.writeHead(200);
-          response.end(html);
+        fs.readFile(`./data/${filteredId}`,'utf-8',function(err,description){
+          var title=queryData.id;
+          if(title === undefined){
+            title="Welcome";
+            description="Hello Node.js";
+            contorl=`<a href="/create">CREATE</a>`
+            var list = template.list(fileList);
+            var html = template.html(title,list,`<h2>${title}</h2>${description}`,contorl);
+            response.writeHead(200);
+            response.end(html);
+          }else{
+            var sanitizedTitle = sanitizeHtml(title);
+            var sanitizeDescription = sanitizeHtml(description);
+            contorl=`<a href="/create">CREATE</a>
+            <a href="/update?id=${sanitizedTitle}">UPDATE</a>
+            <form action='/delete_process' method="post">
+            <input type="hidden" name="id" value="${sanitizedTitle}">
+            <input type="submit" value="delete">
+            </form>`;
+            console.log(fileList);
+            console.log(description);
+            var list = template.list(fileList);
+            var html = template.html(sanitizedTitle,list,`<h2>${sanitizedTitle}</h2>${sanitizeDescription}`,contorl);
+            response.writeHead(200);
+            response.end(html);
+          }
         });
       });
 
@@ -71,9 +84,9 @@ var app = http.createServer(function(request,response){
         var title = post.title;
         var description = post.description;
         fs.writeFile(`./data/${title}`,description,'utf-8',function(err){
-          if(err){
-            throw err;
-          }
+          // if(err){
+          //   throw err;
+          // }
           
           response.writeHead(302,{Location : `/?id=${title}`});
           response.end();
@@ -84,7 +97,8 @@ var app = http.createServer(function(request,response){
     
     }else if(pathname==='/update'){
       fs.readdir('./data',function(error,fileList){
-        fs.readFile(`data/${queryData.id}`,'utf-8',function(err,description){
+        var filteredId = path.parse(queryData.id).base;
+        fs.readFile(`data/${filteredId}`,'utf-8',function(err,description){
 
           console.log(fileList);
           var list = template.list(fileList);
@@ -116,7 +130,7 @@ var app = http.createServer(function(request,response){
         var id = post.id;
         var title = post.title;
         var description = post.description;
-
+        
         fs.rename(`data/${id}`,`data/${title}`,function(err){
 
           fs.writeFile(`data/${title}`,description,'utf-8',function(err){
@@ -134,7 +148,8 @@ var app = http.createServer(function(request,response){
       request.on('end',function(){
         var post=qs.parse(body);
         var id = post.id;
-        fs.unlink(`data/${id}`,function(err){
+        var filteredId=path.parse(id).base;
+        fs.unlink(`data/${filteredId}`,function(err){
           response.writeHead(302,{Location:`/`});
           response.end(); 
         });       
