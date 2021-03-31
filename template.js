@@ -6,12 +6,19 @@ module.exports ={
         <head>
         <title>WEB1 - ${title}</title>
         <meta charset="utf-8">
+        <link rel="stylesheet" href="./style.css">
         </head>
         <body>
-        <h1><a href="/">WEB</a></h1>
+        <h1 class="title"><a href="/">WEB</a></h1>
+        <div class="list">
         ${list}
+        </div>
+        <div class="control">
         ${control}
+        </div>
+        <div class="body">
         ${body}
+        </div>
         </body>
         </html>
         `;

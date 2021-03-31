@@ -5,6 +5,7 @@ var qs = require('querystring');
 var path = require('path');
 var template = require('./template');
 var sanitizeHtml = require('sanitize-html');
+var express = require('express');
 
 var app = http.createServer(function(request,response){
 
@@ -163,7 +164,7 @@ var app = http.createServer(function(request,response){
 
 
 });
-
+app.use
 app.listen(3000);
 /*
     programming 을 배우는 과정에서 각각의 data를 어떻게 처리하는가

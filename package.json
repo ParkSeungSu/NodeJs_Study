@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ParkSeungSu/NodeJs_Study#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "sanitize-html": "^2.3.3"
   }
 }
